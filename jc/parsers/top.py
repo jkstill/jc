@@ -60,8 +60,11 @@ All `-` values are converted to `null`
             "priority":                                 integer,
             "nice":                                     integer,
             "virtual_mem":                              float,    # [1]
+            "virtual_mem_bytes":                        integer,
             "resident_mem":                             float,    # [1]
+            "resident_mem_bytes":                       integer,
             "shared_mem":                               float,    # [1]
+            "shared_mem_bytes":                         integer,
             "status":                                   string,
             "percent_cpu":                              float,
             "percent_mem":                              float,
@@ -83,8 +86,11 @@ All `-` values are converted to `null`
             "last_used_processor":                      integer,
             "time":                                     string,
             "swap":                                     float,    # [1]
+            "swap_bytes":                               integer,
             "code":                                     float,    # [1]
+            "code_bytes":                               integer,
             "data":                                     float,    # [1]
+            "data_bytes":                               integer,
             "major_page_fault_count":                   integer,
             "minor_page_fault_count":                   integer,
             "dirty_pages_count":                        integer,
@@ -104,6 +110,7 @@ All `-` values are converted to `null`
             "major_page_fault_count_delta":             integer,
             "minor_page_fault_count_delta":             integer,
             "used":                                     float,    # [1]
+            "used_bytes":                               integer,
             "ipc_namespace_inode":                      integer,
             "mount_namespace_inode":                    integer,
             "net_namespace_inode":                      integer,
@@ -316,7 +323,7 @@ from jc.parsers.universal import sparse_table_parse as parse_table
 
 class info():
     """Provides parser metadata (version, author, etc.)"""
-    version = '1.2'
+    version = '1.3'
     description = '`top -b` command parser'
     author = 'Kelly Brazil'
     author_email = 'kellyjonbrazil@gmail.com'
@@ -440,6 +447,11 @@ def _process(proc_data: List[Dict], quiet=False) -> List[Dict]:
         'mem_available', 'virtual_mem', 'resident_mem', 'shared_mem', 'swap', 'code', 'data', 'used'
     }
 
+    bytes_list: Set = {
+        'virtual_mem', 'resident_mem', 'shared_mem', 'swap', 'code', 'data',
+        'used'
+    }
+
     for idx, item in enumerate(proc_data):
         for key in item:
             # root truncation warnings
@@ -463,7 +475,8 @@ def _process(proc_data: List[Dict], quiet=False) -> List[Dict]:
                     jc.utils.warning_message([f'Unknown field detected at item[{idx}]["processes"]: {old_key}'])
 
             # cleanup values
-            for key in proc.keys():
+            proc_copy = proc.copy()
+            for key in proc_copy.keys():
 
                 # set dashes to nulls
                 if proc[key] == '-':
@@ -482,6 +495,9 @@ def _process(proc_data: List[Dict], quiet=False) -> List[Dict]:
 
                 # do int/float conversions for the process objects
                 if proc[key]:
+                    if key in bytes_list:
+                        proc[key + '_bytes'] = jc.utils.convert_size_to_int(proc[key], posix_mode=True)
+
                     if key in int_list:
                         proc[key] = jc.utils.convert_to_int(proc[key])
 
