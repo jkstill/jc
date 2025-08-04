@@ -166,6 +166,7 @@ try:
             "blocked": str,
             "connected": str,
             "legacy_pairing": str,
+            "cable_pairing": str,
             "rssi": int,
             "txpower": int,
             "uuids": List[str],
