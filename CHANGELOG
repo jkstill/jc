@@ -1,7 +1,8 @@
 jc changelog
 
-20250724 v1.25.6
+20250904 v1.25.6
 - Add `x509-crl` file parser to support Certificate Revocation List PEM and DER files
+- Add `route-print` Windows command parser
 - Fix `bluetoothctl` command parser to support output with the `cable_pairing` attribute
 - Fix `nmcli` command parser to support blank `team.config` JSON value and `team-port.config` JSON value
 - Fix `top` command parsers to correct memory size field parsing. Several new unit
