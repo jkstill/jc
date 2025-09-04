@@ -1,5 +1,7 @@
 r"""jc - JSON Convert `route print` command output parser
 
+See also: the `route` command parser
+
 Usage (cli):
 
     $ route print | jc --route-print
@@ -26,8 +28,8 @@ Schema:
                     "netmask":                string,
                     "gateway":                string,
                     "interface":              string,
-                    "metric":                 integer,
-                    "metric_set_to_default":  boolean  # if metric="Default"
+                    "metric":                 integer,  # [0]
+                    "metric_set_to_default":  boolean   # [1]
                 }
             ],
             "persistent_routes": [
@@ -35,8 +37,8 @@ Schema:
                     "network_address":        string,
                     "netmask":                string,
                     "gateway_address":        string,
-                    "metric":                 integer
-                    "metric_set_to_default":  boolean  # if metric="Default"
+                    "metric":                 integer   # [0]
+                    "metric_set_to_default":  boolean   # [1]
                 }
             ]
         },
@@ -44,8 +46,8 @@ Schema:
             "active_routes": [
                 {
                     "interface":              integer,
-                    "metric":                 integer,
-                    "metric_set_to_default":  boolean, # if metric="Default"
+                    "metric":                 integer,  # [0]
+                    "metric_set_to_default":  boolean,  # [1]
                     "network_destination":    string,
                     "gateway":                string
                 }
@@ -53,14 +55,17 @@ Schema:
             "persistent_routes": [
                 {
                     "interface":              integer,
-                    "metric":                 integer,
-                    "metric_set_to_default":  boolean, # if metric="Default"
+                    "metric":                 integer,  # [0]
+                    "metric_set_to_default":  boolean,  # [1]
                     "network_destination":    string,
                     "gateway":                string
                 }
             ]
         }
     }
+
+    [0] Null/None if "metric" = "Default"
+    [1] True if "metric" = "Default"
 
 Examples:
 
@@ -173,9 +178,10 @@ import jc.utils
 class info():
     """Provides parser metadata (version, author, etc.)"""
     version = '1.0'
-    description = '`route-print` command parser'
+    description = '`route print` command parser'
     author = 'joehacksalot'
     author_email = 'joehacksalot@gmail.com'
+    details = 'See also: `route` command parser'
     compatible = ['win32']
     magic_commands = ['route print']
     tags = ['command']
