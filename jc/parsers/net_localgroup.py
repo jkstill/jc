@@ -1,12 +1,11 @@
 r"""jc - JSON Convert `net localgroup` command output parser
 
-
 Usage (cli):
 
-    $ net localgroup | jc --net-localgroup -p
-    $ net localgroup /domain | jc --net-localgroup -p
-    $ net localgroup Administrators | jc --net-localgroup -p
-    $ net localgroup Administrators /domain | jc --net-localgroup -p
+    $ net localgroup | jc --net-localgroup
+    $ net localgroup /domain | jc --net-localgroup
+    $ net localgroup Administrators | jc --net-localgroup
+    $ net localgroup Administrators /domain | jc --net-localgroup
 
 Usage (module):
 
@@ -29,15 +28,6 @@ Schema:
         ],
     }
 
-
-    Notes:
-      [0] - 'lease_expires' and 'lease_obtained' are parsed to ISO8601 format date strings. if the value was unable 
-            to be parsed by datetime, the fields will be in their raw form
-      [1] - 'autoconfigured' under 'ipv4_address' is only providing indication if the ipv4 address was labeled as
-            "Autoconfiguration IPv4 Address" vs "IPv4 Address". It does not infer any information from other fields
-      [2] - Windows XP uses 'IP Address' instead of 'IPv4 Address'. Both values are parsed to the 'ipv4_address' 
-            object for consistency
-
 Examples:
 
     $ net localgroup | jc --net-localgroup -p
@@ -57,12 +47,7 @@ Examples:
             }
         ]
     }
-    $ net localgroup Administrators | jc --net-localgroup -p
-    $ net localgroup /domain | jc --net-localgroup -p
-
 """
-
-from datetime import datetime
 import re
 import jc.utils
 
@@ -73,7 +58,7 @@ class info():
     description = '`net localgroup` command parser'
     author = 'joehacksalot'
     author_email = 'joehacksalot@gmail.com'
-    compatible = ['windows']
+    compatible = ['win32']
     magic_commands = ['net localgroup']
     tags = ['command']
 
@@ -117,7 +102,7 @@ def _process(proc_data):
 
         Processed Dictionary. Structured data to conform to the schema.
     """
-    return proc_data # No further processing is needed
+    return proc_data
 
 
 class _PushbackIterator:
@@ -176,7 +161,7 @@ def _parse(data):
         # Skip empty lines
         if not line.strip():
             continue
-        
+
         match_domain_processed = re.match(r"^The request will be processed at a domain controller for domain (.+)", line, re.IGNORECASE)
         match_localgroup_list = re.match(r"^Aliases for[\s]*([^:]+)", line, re.IGNORECASE)        #  "Aliases for \\DESKTOP-WIN11:"
         match_localgroup_members = re.match(r"^Alias name[\s]*([^:]+)", line, re.IGNORECASE)      #  "Alias name     administrators:"
@@ -205,4 +190,5 @@ def _parse(data):
                     "name": group_name,
                     "members": names_list
                 }]
+
     return result
