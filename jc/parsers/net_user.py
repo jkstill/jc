@@ -74,7 +74,7 @@ Examples:
         ]
     }
 
-    $ net users /domain | jc --net-user -p | jq
+    $ net users /domain | jc --net-user -p
     {
         "account_origin": "\\\\DESKTOP-WIN10-PRO.somecompany.corp",
         "domain": "somecompany.corp",
@@ -121,7 +121,7 @@ Examples:
         ]
     }
 
-    $ net users Administrator | jc --net-user -p | jq
+    $ net users Administrator | jc --net-user -p
     {
         "domain": "",
         "user_accounts": [
@@ -179,12 +179,9 @@ Examples:
         ]
     }
 """
-
-
 from datetime import datetime
 import re
 import jc.utils
-from jc.exceptions import ParseError
 
 
 class info():
@@ -193,7 +190,7 @@ class info():
     description = '`net user` command parser'
     author = 'joehacksalot'
     author_email = 'joehacksalot@gmail.com'
-    compatible = ['windows']
+    compatible = ['win32']
     magic_commands = ['net user']
     tags = ['command']
 
@@ -220,14 +217,13 @@ def parse(data, raw=False, quiet=False):
 
     raw_output = {}
     if jc.utils.has_data(data):
-        try:
-            raw_output = _parse(data)
-            return raw_output if raw else _process(raw_output)
-        except Exception as e:
-            if not quiet:
-                raise ParseError('Could not parse data due to unexpected format.')
-            return {}
-        
+        raw_output = _parse(data)
+
+    if not raw_output:
+        raw_output = {}
+
+    return raw_output if raw else _process(raw_output)
+
 def _set_if_not_none(output_dict, key, value):
     if value is not None:
         output_dict[key] = value
@@ -267,7 +263,11 @@ def _process(proc_data):
         _set_if_not_none(user_account, "password_required", _process_string_is_yes(user_account.get("password_required", None)))
         _set_if_not_none(user_account, "user_may_change_password", _process_string_is_yes(user_account.get("user_may_change_password", None)))
         _set_if_not_none(user_account, "last_logon", _process_date(user_account.get("last_logon", None)))
-    return proc_data # No further processing is needed
+
+    if not proc_data:
+        proc_data = {}
+
+    return proc_data
 
 
 class _PushbackIterator:
@@ -339,7 +339,7 @@ def _parse(data):
         "domain": "",
         "user_accounts": []
     }
-    
+
     lines = data.splitlines()
     lines = [line.rstrip() for line in lines if line.strip() != ""]
 
@@ -358,11 +358,11 @@ def _parse(data):
         elif "User name" in line:
             line_iter.pushback(line)
             user_account_keypairs = {}
-            
+
             # Regular expression to match key-value pairs
             kv_pattern = re.compile(r'^([\w\s\/\'\-]{1,29})\s*(.+)?$')
             key = None
-            
+
             while True:
                 # Process each line
                 # Break when done
@@ -371,7 +371,7 @@ def _parse(data):
                     line = line.strip()
                     if not line:
                         continue  # Skip empty lines
-                    
+
                     match = kv_pattern.match(line)
                     if "The command completed" in line:
                         break
@@ -437,5 +437,5 @@ def _parse(data):
                     break
         else:
             raise ValueError(f"Unexpected line: {line}")
-    
+
     return result
