@@ -119,6 +119,7 @@ import re
 from decimal import Decimal
 import jc.utils
 from copy import deepcopy
+from jc.exceptions import ParseError
 
 
 class info():
@@ -164,7 +165,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-RE_HEADER = re.compile(r'(\S+)\s+\((\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]+)\)')
+RE_HEADER = re.compile(r'traceroute6? to (\S+)\s+\((\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]+)\)')
 RE_PROBE_NAME_IP = re.compile(r'(\S+)\s+\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|[0-9a-fA-F:]+)\)+')
 RE_PROBE_IP_ONLY = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([^\(])')
 RE_PROBE_IPV6_ONLY = re.compile(r'(([a-f0-9]*:)+[a-f0-9]+)')
@@ -291,8 +292,23 @@ def _get_probes(hop_string: str):
     return probes
 
 
-def _loads(data):
-    lines = data.splitlines()
+def _loads(data: str, quiet: bool):
+    lines = []
+
+    # remove any warning lines
+    for data_line in data.splitlines():
+        if 'traceroute: Warning: ' not in data_line and 'traceroute6: Warning: ' not in data_line:
+            lines.append(data_line)
+        else:
+            continue
+
+    # check if header row exists, otherwise add a dummy header
+    if not lines[0].startswith('traceroute to ') and not lines[0].startswith('traceroute6 to '):
+        lines[:0] = ['traceroute to <<_>>  (<<_>>), 30 hops max, 60 byte packets']
+
+        # print warning to STDERR
+        if not quiet:
+            jc.utils.warning_message(['No header row found. For destination info redirect STDERR to STDOUT'])
 
     # Get headers
     match_dest = RE_HEADER.search(lines[0])
@@ -330,11 +346,28 @@ def _loads(data):
     return traceroute
 
 
-class ParseError(Exception):
-    pass
-
-
 ########################################################################################
+
+
+def _serialize_hop(hop: _Hop):
+    hop_obj = {}
+    hop_obj['hop'] = str(hop.idx)
+    probe_list = []
+
+    if hop.probes:
+        for probe in hop.probes:
+            probe_obj = {
+                'annotation': probe.annotation,
+                'asn': None if probe.asn is None else str(probe.asn),
+                'ip': probe.ip,
+                'name': probe.name,
+                'rtt': None if probe.rtt is None else str(probe.rtt)
+            }
+            probe_list.append(probe_obj)
+
+    hop_obj['probes'] = probe_list
+
+    return hop_obj
 
 
 def _process(proc_data):
@@ -349,26 +382,20 @@ def _process(proc_data):
 
         Dictionary. Structured to conform to the schema.
     """
-    int_list = {'hop', 'asn'}
+    int_list = {'hop', 'asn', 'max_hops', 'data_bytes'}
     float_list = {'rtt'}
 
-    if 'hops' in proc_data:
-        for entry in proc_data['hops']:
-            for key in entry:
-                if key in int_list:
-                    entry[key] = jc.utils.convert_to_int(entry[key])
+    for entry in proc_data.get('hops', []):
+        _process(entry)
+    for entry in proc_data.get('probes', []):
+        _process(entry)
 
-                if key in float_list:
-                    entry[key] = jc.utils.convert_to_float(entry[key])
+    for key in proc_data:
+        if key in int_list:
+            proc_data[key] = jc.utils.convert_to_int(proc_data[key])
 
-            if 'probes' in entry:
-                for item in entry['probes']:
-                    for key in item:
-                        if key in int_list:
-                            item[key] = jc.utils.convert_to_int(item[key])
-
-                        if key in float_list:
-                            item[key] = jc.utils.convert_to_float(item[key])
+        if key in float_list:
+            proc_data[key] = jc.utils.convert_to_float(proc_data[key])
 
     return proc_data
 
@@ -393,48 +420,11 @@ def parse(data, raw=False, quiet=False):
     raw_output = {}
 
     if jc.utils.has_data(data):
-
-        # remove any warning lines
-        new_data = []
-        for data_line in data.splitlines():
-            if 'traceroute: Warning: ' not in data_line and 'traceroute6: Warning: ' not in data_line:
-                new_data.append(data_line)
-            else:
-                continue
-
-        # check if header row exists, otherwise add a dummy header
-        if not new_data[0].startswith('traceroute to ') and not new_data[0].startswith('traceroute6 to '):
-            new_data[:0] = ['traceroute to <<_>>  (<<_>>), 30 hops max, 60 byte packets']
-
-            # print warning to STDERR
-            if not quiet:
-                jc.utils.warning_message(['No header row found. For destination info redirect STDERR to STDOUT'])
-
-        data = '\n'.join(new_data)
-
-        tr = _loads(data)
-        hops = tr.hops
+        tr = _loads(data, quiet)
         hops_list = []
 
-        if hops:
-            for hop in hops:
-                hop_obj = {}
-                hop_obj['hop'] = str(hop.idx)
-                probe_list = []
-
-                if hop.probes:
-                    for probe in hop.probes:
-                        probe_obj = {
-                            'annotation': probe.annotation,
-                            'asn': None if probe.asn is None else str(probe.asn),
-                            'ip': probe.ip,
-                            'name': probe.name,
-                            'rtt': None if probe.rtt is None else str(probe.rtt)
-                        }
-                        probe_list.append(probe_obj)
-
-                hop_obj['probes'] = probe_list
-                hops_list.append(hop_obj)
+        for hop in tr.hops:
+            hops_list.append(_serialize_hop(hop))
 
         raw_output = {
             'destination_ip': tr.dest_ip,
