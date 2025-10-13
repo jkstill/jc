@@ -1,4 +1,4 @@
-.TH jc 1 2025-05-10 1.25.5 "JSON Convert"
+.TH jc 1 2025-10-12 1.25.6 "JSON Convert"
 .SH NAME
 \fBjc\fP \- JSON Convert JSONifies the output of many CLI tools, file-types,
 and strings
@@ -489,6 +489,16 @@ M3U and M3U8 file parser
 
 .TP
 .B
+\fB--net-localgroup\fP
+`net localgroup` command parser
+
+.TP
+.B
+\fB--net-user\fP
+`net user` command parser
+
+.TP
+.B
 \fB--nmcli\fP
 `nmcli` command parser
 
@@ -874,6 +884,11 @@ PLIST file parser
 
 .TP
 .B
+\fB--route-print\fP
+`route print` command parser
+
+.TP
+.B
 \fB--rpm-qi\fP
 `rpm -qi` command parser
 
@@ -1029,6 +1044,11 @@ TOML file parser
 
 .TP
 .B
+\fB--traceroute-s\fP
+`traceroute` and `traceroute6` command streaming parser
+
+.TP
+.B
 \fB--tune2fs\fP
 `tune2fs -l` command parser
 
@@ -1121,6 +1141,11 @@ Version string parser
 .B
 \fB--x509-cert\fP
 X.509 PEM and DER certificate file parser
+
+.TP
+.B
+\fB--x509-crl\fP
+X.509 PEM and DER certificate revocation list file parser
 
 .TP
 .B

@@ -1,4 +1,3 @@
-[![Tests](https://github.com/kellyjonbrazil/jc/workflows/Tests/badge.svg?branch=master)](https://github.com/kellyjonbrazil/jc/actions)
 [![Pypi](https://img.shields.io/pypi/v/jc.svg)](https://pypi.org/project/jc/)
 
 > Check out the `jc` Python [package documentation](https://github.com/kellyjonbrazil/jc/tree/master/docs) for developers
@@ -246,6 +245,8 @@ option.
 |      `--mpstat-s` | `mpstat` command streaming parser                       | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/mpstat_s)       |
 |   `--needrestart` | `needrestart -b` command parser                         | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/needrestart)    |
 |       `--netstat` | `netstat` command parser                                | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/netstat)        |
+| `--net-localgroup` | `net localgroup` command parser                         | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/net_localgroup) |
+|      `--net-user` | `net user` command parser                               | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/net_user)       |
 |         `--nmcli` | `nmcli` command parser                                  | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/nmcli)          |
 |   `--nsd-control` | `nsd-control` command parser                            | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/nsd_control)    |
 |          `--ntpq` | `ntpq -p` command parser                                | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/ntpq)           |
@@ -272,6 +273,7 @@ option.
 |            `--ps` | `ps` command parser                                     | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/ps)             |
 |  `--resolve-conf` | `/etc/resolve.conf` file parser                         | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/resolve_conf)   |
 |         `--route` | `route` command parser                                  | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/route)          |
+|   `--route-print` | `route print` command parser                            | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/route_print)    |
 |        `--rpm-qi` | `rpm -qi` command parser                                | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/rpm_qi)         |
 |         `--rsync` | `rsync` command parser                                  | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/rsync)          |
 |       `--rsync-s` | `rsync` command streaming parser                        | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/rsync_s)        |
@@ -303,6 +305,7 @@ option.
 |         `--top-s` | `top -b` command streaming parser                       | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/top_s)          |
 |     `--tracepath` | `tracepath` and `tracepath6` command parser             | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/tracepath)      |
 |    `--traceroute` | `traceroute` and `traceroute6` command parser           | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/traceroute)     |
+|  `--traceroute-s` | `traceroute` and `traceroute6` command streaming parser | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/traceroute_s)   |
 |       `--tune2fs` | `tune2fs -l` command parser                             | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/tune2fs)        |
 |       `--udevadm` | `udevadm info` command parser                           | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/udevadm)        |
 |           `--ufw` | `ufw status` command parser                             | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/ufw)            |
@@ -322,6 +325,7 @@ option.
 |       `--wg-show` | `wg show` command parser                                | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/wg_show)        |
 |           `--who` | `who` command parser                                    | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/who)            |
 |     `--x509-cert` | X.509 PEM and DER certificate file parser               | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/x509_cert)      |
+|      `--x509-crl` | X.509 PEM and DER certificate revocation list file parser | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/x509_crl)       |
 |      `--x509-csr` | X.509 PEM and DER certificate request file parser       | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/x509_csr)       |
 |           `--xml` | XML file parser                                         | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/xml)            |
 |        `--xrandr` | `xrandr` command parser                                 | [details](https://kellyjonbrazil.github.io/jc/docs/parsers/xrandr)         |
