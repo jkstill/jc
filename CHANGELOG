@@ -1,9 +1,11 @@
 jc changelog
 
-20250908 v1.25.6
+202501012 v1.25.6
 - Add `net-localgroup` Windows command parser
 - Add `net-user` Windows command parser
 - Add `route-print` Windows command parser
+- Add `traceroute-s` streaming command parser
+- Add `max_hops` and `data_bytes` fields to `traceroute` command parser
 - Add `x509-crl` file parser to support Certificate Revocation List PEM and DER files
 - Add `yay` as a magic command for the `pacman` command parser
 - Fix `bluetoothctl` command parser to support output with the `cable_pairing` attribute

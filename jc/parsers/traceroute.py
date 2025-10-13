@@ -27,6 +27,8 @@ Schema:
     {
       "destination_ip":         string,
       "destination_name":       string,
+      "max_hops":               integer,
+      "data_bytes":             integer,
       "hops": [
         {
           "hop":                integer,
@@ -49,6 +51,8 @@ Examples:
     {
       "destination_ip": "216.58.194.46",
       "destination_name": "google.com",
+      "max_hops": 64,
+      "data_bytes": 50,
       "hops": [
         {
           "hop": 1,
@@ -84,6 +88,8 @@ Examples:
     {
       "destination_ip": "216.58.194.46",
       "destination_name": "google.com",
+      "max_hops": "64",
+      "data_bytes": "50",
       "hops": [
         {
           "hop": "1",
@@ -166,6 +172,7 @@ SOFTWARE.
 '''
 
 RE_HEADER = re.compile(r'traceroute6? to (\S+)\s+\((\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]+)\)')
+RE_HEADER_HOPS_BYTES = re.compile(r'(\d+) hops max, (\d+) byte packets')
 RE_PROBE_NAME_IP = re.compile(r'(\S+)\s+\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|[0-9a-fA-F:]+)\)+')
 RE_PROBE_IP_ONLY = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([^\(])')
 RE_PROBE_IPV6_ONLY = re.compile(r'(([a-f0-9]*:)+[a-f0-9]+)')
@@ -176,9 +183,11 @@ RE_PROBE_RTT_ANNOTATION = re.compile(r'(?:(\d+(?:\.?\d+)?)\s+ms|(\s+\*\s+))\s*(!
 
 
 class _Traceroute(object):
-    def __init__(self, dest_name, dest_ip):
+    def __init__(self, dest_name, dest_ip, max_hops=None, data_bytes=None):
         self.dest_name = dest_name
         self.dest_ip = dest_ip
+        self.max_hops = max_hops
+        self.data_bytes = data_bytes
         self.hops = []
 
     def add_hop(self, hop):
@@ -304,7 +313,7 @@ def _loads(data: str, quiet: bool):
 
     # check if header row exists, otherwise add a dummy header
     if not lines[0].startswith('traceroute to ') and not lines[0].startswith('traceroute6 to '):
-        lines[:0] = ['traceroute to <<_>>  (<<_>>), 30 hops max, 60 byte packets']
+        lines[:0] = ['traceroute to <<_>>  (<<_>>), ? hops max, ? byte packets']
 
         # print warning to STDERR
         if not quiet:
@@ -317,8 +326,15 @@ def _loads(data: str, quiet: bool):
         dest_name = match_dest.group(1)
         dest_ip = match_dest.group(2)
 
+    m = RE_HEADER_HOPS_BYTES.search(lines[0])
+    max_hops = None
+    data_bytes = None
+    if m:
+        max_hops = m.group(1)
+        data_bytes = m.group(2)
+
     # The Traceroute node is the root of the tree
-    traceroute = _Traceroute(dest_name, dest_ip)
+    traceroute = _Traceroute(dest_name, dest_ip, max_hops, data_bytes)
 
     # Parse the remaining lines, they should be only hops/probes
     for line in lines[1:]:
@@ -328,25 +344,23 @@ def _loads(data: str, quiet: bool):
 
         hop_match = RE_HOP.match(line)
 
-        if hop_match.group(1):
-            hop_index = int(hop_match.group(1))
-        else:
-            hop_index = None
+        if hop_match:
+            if hop_match.group(1):
+                hop_index = int(hop_match.group(1))
+            else:
+                hop_index = None
 
-        if hop_index is not None:
-            hop = _Hop(hop_index)
-            traceroute.add_hop(hop)
+            if hop_index is not None:
+                hop = _Hop(hop_index)
+                traceroute.add_hop(hop)
 
-        hop_string = hop_match.group(2)
+            hop_string = hop_match.group(2)
 
         probes = _get_probes(hop_string)
         for probe in probes:
             hop.add_probe(probe)
 
     return traceroute
-
-
-########################################################################################
 
 
 def _serialize_hop(hop: _Hop):
@@ -429,6 +443,8 @@ def parse(data, raw=False, quiet=False):
         raw_output = {
             'destination_ip': tr.dest_ip,
             'destination_name': tr.dest_name,
+            'max_hops': tr.max_hops,
+            'data_bytes': tr.data_bytes,
             'hops': hops_list
         }
 

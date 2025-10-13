@@ -131,7 +131,6 @@ Examples:
     }
     ...
 """
-import re
 from typing import Optional
 
 import jc.utils
@@ -139,7 +138,7 @@ from jc.exceptions import ParseError
 from jc.streaming import (
     add_jc_meta, streaming_input_type_check, streaming_line_input_type_check, raise_or_yield
 )
-from .traceroute import RE_HEADER, RE_HOP, _Hop, _loads, _process, _serialize_hop
+from .traceroute import RE_HEADER, RE_HOP, RE_HEADER_HOPS_BYTES, _Hop, _loads, _process, _serialize_hop
 
 
 class info():
@@ -182,8 +181,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
-
-RE_HEADER_HOPS_BYTES = re.compile(r'(\d+) hops max, (\d+) byte packets')
 
 
 def _hop_output(hop: _Hop, raw: bool):
@@ -231,15 +228,9 @@ def parse(data, raw=False, quiet=False, ignore_exceptions=False):
                     'type': 'header',
                     'destination_ip': tr.dest_ip,
                     'destination_name': tr.dest_name,
+                    'max_hops': tr.max_hops,
+                    'data_bytes': tr.data_bytes
                 }
-
-                # Extend the header-line parsing. We may want to relocate this to traceroute.py to keep the output consistent.
-                m = RE_HEADER_HOPS_BYTES.search(line)
-                if m:
-                    raw_output.update({
-                        'max_hops': m.group(1),
-                        'data_bytes': m.group(2),
-                    })
 
                 yield raw_output if raw else _process(raw_output)
 
